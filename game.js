@@ -308,6 +308,12 @@ const Game = {
     });
     document.getElementById('btn-select-char').addEventListener('mouseenter', playHover);
 
+    document.getElementById('btn-fullscreen').addEventListener('click', () => {
+      playSelect();
+      this.toggleFullScreen();
+    });
+    document.getElementById('btn-fullscreen').addEventListener('mouseenter', playHover);
+
     document.getElementById('btn-char-back').addEventListener('click', () => {
       playSelect();
       document.getElementById('char-select-screen').classList.add('hidden');
@@ -1884,8 +1890,9 @@ const Game = {
     const scaleY = windowHeight / targetHeight;
     
     // Use the smaller scale to ensure it fits entirely (maintain aspect ratio)
-    // Subtract a tiny bit (0.95) to leave a small margin
-    const scale = Math.min(scaleX, scaleY, 1.0) * 0.98;
+    // On mobile (portrait-ish), we want it to be as large as possible
+    const isMobile = windowHeight > windowWidth || ('ontouchstart' in window);
+    const scale = isMobile ? Math.min(scaleX, scaleY) : Math.min(scaleX, scaleY) * 0.98;
     
     document.documentElement.style.setProperty('--game-scale', scale);
     
@@ -1893,6 +1900,18 @@ const Game = {
     if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
       this.touchControlsActive = true;
       this.updateUI();
+    }
+  },
+
+  toggleFullScreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(err => {
+        console.warn(`Error attempting to enable full-screen mode: ${err.message}`);
+      });
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
     }
   }
 };
