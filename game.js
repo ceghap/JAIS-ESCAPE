@@ -243,6 +243,24 @@ const Game = {
       this.keys[e.code] = false;
     });
 
+    // Tap/Click to jump on the game area
+    const handleTapAction = (e) => {
+      // Don't trigger jump if we clicked a button or UI element
+      if (e.target.closest('button') || e.target.closest('.char-card') || e.target.closest('.touch-btn')) {
+        return;
+      }
+
+      if (this.currentState === this.States.PLAYING) {
+        this.triggerJump();
+      }
+    };
+
+    this.canvas.addEventListener('mousedown', (e) => handleTapAction(e));
+    this.canvas.addEventListener('touchstart', (e) => {
+      this.touchControlsActive = true;
+      handleTapAction(e);
+    }, { passive: true });
+
     // Mobile Virtual Touch Buttons
     const bindTouch = (id, actionDown, actionUp) => {
       const btn = document.getElementById(id);
