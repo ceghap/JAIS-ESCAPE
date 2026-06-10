@@ -82,6 +82,10 @@ const Game = {
     this.bindInputs();
     this.bindUI();
 
+    // Setup dynamic scaling for mobile
+    this.handleResize();
+    window.addEventListener('resize', () => this.handleResize());
+
     // Populate Character Grid in UI
     this.populateCharacterGrid();
 
@@ -1843,6 +1847,34 @@ const Game = {
       // End cutscene, show credits panel
       document.getElementById('cutscene-dialogue-box').classList.add('hidden');
       document.getElementById('credits-panel').classList.remove('hidden');
+    }
+  },
+
+  handleResize() {
+    const container = document.getElementById('game-container');
+    if (!container) return;
+
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    
+    // Target dimensions are 960x540
+    const targetWidth = 960;
+    const targetHeight = 540;
+
+    // Calculate the scale needed to fit the screen
+    const scaleX = windowWidth / targetWidth;
+    const scaleY = windowHeight / targetHeight;
+    
+    // Use the smaller scale to ensure it fits entirely (maintain aspect ratio)
+    // Subtract a tiny bit (0.95) to leave a small margin
+    const scale = Math.min(scaleX, scaleY, 1.0) * 0.98;
+    
+    document.documentElement.style.setProperty('--game-scale', scale);
+    
+    // Auto-detect touch on resize/load
+    if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+      this.touchControlsActive = true;
+      this.updateUI();
     }
   }
 };
