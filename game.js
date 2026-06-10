@@ -1885,9 +1885,6 @@ const Game = {
     const container = document.getElementById('game-container');
     if (!container) return;
 
-    // Check if browser is in true fullscreen mode
-    const isFullScreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
-
     const windowWidth = window.innerWidth;
     const windowHeight = window.innerHeight;
     
@@ -1900,29 +1897,17 @@ const Game = {
 
     // Detect if we should rotate
     const isPortrait = windowHeight > windowWidth;
-    // Inclusive mobile check: touch support OR very small screen width
     const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || windowWidth < 600;
 
-    if (isFullScreen) {
-      // In browser fullscreen, we reset transform and let CSS take over centering
-      container.style.transform = 'translate(-50%, -50%)';
-      return;
-    }
-
     if (isPortrait && isMobile) {
-      // Rotate 90 degrees to fit landscape game into portrait screen
       rotation = 90;
-      // When rotated 90deg, game's 960 width fits into windowHeight, 540 height fits into windowWidth
       const scaleX = windowHeight / targetWidth;
       const scaleY = windowWidth / targetHeight;
       scale = Math.min(scaleX, scaleY);
     } else {
-      // Standard landscape fitting
       const scaleX = windowWidth / targetWidth;
       const scaleY = windowHeight / targetHeight;
-      // Cap scale at 1.0 for desktop to keep it sharp, allow full scale for mobile
-      const maxScale = isMobile ? 2.0 : 1.0; 
-      scale = Math.min(scaleX, scaleY, maxScale);
+      scale = Math.min(scaleX, scaleY);
       
       // On desktop, if it's smaller than the window, give it a tiny bit of breathing room
       if (!isMobile && scale < 1.0) scale *= 0.98;
@@ -1939,14 +1924,14 @@ const Game = {
 
   toggleFullScreen() {
     const doc = window.document;
-    const container = document.getElementById('game-container');
+    const wrapper = document.getElementById('app-wrapper');
 
-    const requestFullScreen = container.requestFullscreen || container.mozRequestFullScreen || container.webkitRequestFullScreen || container.msRequestFullscreen;
+    const requestFullScreen = wrapper.requestFullscreen || wrapper.mozRequestFullScreen || wrapper.webkitRequestFullScreen || wrapper.msRequestFullscreen;
     const cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
 
     if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
       if (requestFullScreen) {
-        requestFullScreen.call(container).catch(err => {
+        requestFullScreen.call(wrapper).catch(err => {
           console.warn(`Error attempting to enable full-screen mode: ${err.message}`);
         });
       }

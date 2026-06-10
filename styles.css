@@ -53,7 +53,7 @@ body {
   align-items: center;
 }
 
-/* 16:9 aspect ratio game container */
+/* 16:9 aspect ratio game container (The Stage) */
 #game-container {
   position: absolute;
   top: 50%;
@@ -65,35 +65,21 @@ body {
   overflow: hidden;
   image-rendering: pixelated;
   transform-origin: center center;
+  /* Ensure all internal children stay within the 960x540 space */
 }
 
-/* Remove the redundant media queries for fixed positioning */
-/* The JS will handle scaling dynamically now */
+/* Remove the separate fullscreen handling for game-container */
+/* We will target #app-wrapper for fullscreen now */
 
-/* Handle actual browser fullscreen mode */
-#game-container:fullscreen {
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+/* Fullscreen handling for the wrapper */
+#app-wrapper:fullscreen {
   background-color: #000;
-  transform: none !important; /* Reset dynamic scaling during true fullscreen */
-}
-
-#game-container:-webkit-full-screen {
   width: 100vw;
   height: 100vh;
-  transform: none !important;
 }
 
-#game-container:fullscreen #game-canvas {
-  width: auto;
-  height: auto;
-  max-width: 100%;
-  max-height: 100%;
-  position: relative;
-  aspect-ratio: 16 / 9;
+#app-wrapper:fullscreen #game-container {
+  /* Scale logic will be handled by JS handleResize */
 }
 
 /* Canvas styling */
