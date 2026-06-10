@@ -269,37 +269,53 @@ const Game = {
   },
 
   bindUI() {
+    const playSelect = () => GameAudio.playSelect();
+    const playHover = () => GameAudio.playHover();
+
     document.getElementById('btn-play').addEventListener('click', () => {
+      playSelect();
       this.startRun();
     });
+    document.getElementById('btn-play').addEventListener('mouseenter', playHover);
 
     document.getElementById('btn-select-char').addEventListener('click', () => {
+      playSelect();
       this.currentState = this.States.MENU;
       document.getElementById('start-screen').classList.add('hidden');
       document.getElementById('char-select-screen').classList.remove('hidden');
     });
+    document.getElementById('btn-select-char').addEventListener('mouseenter', playHover);
 
     document.getElementById('btn-char-back').addEventListener('click', () => {
+      playSelect();
       document.getElementById('char-select-screen').classList.add('hidden');
       document.getElementById('start-screen').classList.remove('hidden');
     });
+    document.getElementById('btn-char-back').addEventListener('mouseenter', playHover);
 
     document.getElementById('btn-retry').addEventListener('click', () => {
+      playSelect();
       this.startRun();
     });
+    document.getElementById('btn-retry').addEventListener('mouseenter', playHover);
 
     document.getElementById('btn-go-menu').addEventListener('click', () => {
+      playSelect();
       this.currentState = this.States.MENU;
       this.updateUI();
     });
+    document.getElementById('btn-go-menu').addEventListener('mouseenter', playHover);
 
     document.getElementById('btn-victory-menu').addEventListener('click', () => {
+      playSelect();
       this.currentState = this.States.MENU;
       this.updateUI();
     });
+    document.getElementById('btn-victory-menu').addEventListener('mouseenter', playHover);
 
     // Cutscene text progress click
     document.getElementById('cutscene-dialogue-box').addEventListener('click', () => {
+      playSelect();
       this.advanceCutscene();
     });
   },
@@ -343,8 +359,13 @@ const Game = {
         card.appendChild(lockInfo);
       }
 
+      card.addEventListener('mouseenter', () => {
+        if (char.unlocked) GameAudio.playHover();
+      });
+
       card.addEventListener('click', () => {
         if (char.unlocked) {
+          GameAudio.playSelect();
           this.selectedCharId = id;
           
           // Update selected classes in DOM

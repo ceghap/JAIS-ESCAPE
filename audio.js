@@ -267,6 +267,23 @@ const GameAudio = {
     });
   },
 
+  // 7. UI Sounds: Hover and Select
+  playHover() {
+    this.initContext();
+    this.resumeContext();
+    if (this.isMuted || !this.ctx) return;
+    this.playTone(880, 'sine', 0.05, 0.1, this.ctx.currentTime);
+  },
+
+  playSelect() {
+    this.initContext();
+    this.resumeContext();
+    if (this.isMuted || !this.ctx) return;
+    const now = this.ctx.currentTime;
+    this.playTone(660, 'square', 0.05, 0.2, now);
+    this.playTone(1320, 'square', 0.05, 0.2, now + 0.05);
+  },
+
   // 6. Background Music Loop scheduler (16-step sequencer)
   startMusic() {
     this.initContext();
