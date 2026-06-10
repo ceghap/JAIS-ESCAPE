@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>JAIS Escape! - Pang5 Adudu's Grand Misunderstanding</title>
+  <!-- Google Fonts: Retro Press Start 2P for arcade feel, Outfit for cleaner text -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app-wrapper">
+    <div id="game-container">
+      <!-- Game Canvas -->
+      <canvas id="game-canvas" width="960" height="540"></canvas>
+
+      <!-- Glassmorphic HUD overlay during gameplay -->
+      <div id="game-hud" class="hidden">
+        <div class="hud-top-bar">
+          <div class="hud-stat-box">
+            <span class="hud-label">SCORE</span>
+            <span id="hud-score" class="hud-value font-arcade">00000</span>
+          </div>
+          <div class="hud-stat-box">
+            <span class="hud-label">LIVES</span>
+            <div id="hud-lives" class="hud-value font-arcade">👑 👑 👑</div>
+          </div>
+          <div class="hud-stat-box">
+            <span class="hud-label">HI-SCORE</span>
+            <span id="hud-highscore" class="hud-value font-arcade">00000</span>
+          </div>
+        </div>
+
+        <!-- Progress bar for active power-ups -->
+        <div id="hud-powerup-bar" class="hidden">
+          <span id="powerup-name">TEH TARIK BOOST</span>
+          <div class="progress-track">
+            <div id="powerup-progress" style="width: 100%;"></div>
+          </div>
+        </div>
+
+        <div class="hud-bottom-bar">
+          <!-- JAIS Patrol Distance Alert Meter -->
+          <div id="hud-jais-meter">
+            <span class="hud-label alert-pulse">JAIS PATROL</span>
+            <div class="meter-track">
+              <div id="jais-warning-indicator" class="meter-fill green"></div>
+              <div id="jais-car-icon" class="meter-icon">🚓</div>
+              <div id="player-icon" class="meter-icon">🏃</div>
+            </div>
+            <span id="jais-distance-text" class="meter-subtext">SAFE DISTANCE</span>
+          </div>
+
+          <!-- Dash Cooldown Indicator -->
+          <div id="hud-dash-cooldown">
+            <span class="hud-label">DASH</span>
+            <div class="dash-circle">
+              <span id="dash-icon">⚡</span>
+              <svg class="cooldown-svg" viewBox="0 0 36 36">
+                <path class="cooldown-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+                <path id="dash-cooldown-progress" class="cooldown-fill" stroke-dasharray="100, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Meme Event Banner Alert -->
+        <div id="meme-event-banner" class="hidden">
+          <div id="meme-event-title" class="font-arcade">DURIAN SEASON!</div>
+          <div id="meme-event-desc">DODGE THE FALLING DURIANS!</div>
+        </div>
+      </div>
+
+      <!-- Start Screen Menu Overlay -->
+      <div id="start-screen" class="overlay-panel">
+        <div class="logo-area">
+          <h1 class="game-title animate-title">🏃 JAIS ESCAPE!</h1>
+          <p class="tagline">"It's just a misunderstanding... probably."</p>
+        </div>
+        
+        <div class="menu-content">
+          <div class="character-preview-box">
+            <canvas id="menu-char-preview" width="96" height="96"></canvas>
+            <div class="character-details">
+              <div class="label">SELECTED HERO</div>
+              <div id="menu-char-name" class="font-arcade">PANG5 ADUDU</div>
+              <div id="menu-char-ability" class="ability-text">Dash cooldown: 3s</div>
+            </div>
+          </div>
+
+          <div class="menu-actions">
+            <button id="btn-play" class="btn btn-primary btn-lg font-arcade">START RUN</button>
+            <button id="btn-select-char" class="btn btn-secondary font-arcade">SELECT HERO</button>
+          </div>
+        </div>
+
+        <div class="menu-instructions">
+          <div class="keyboard-controls">
+            <h3>KEYBOARD CONTROLS</h3>
+            <ul>
+              <li><span class="key">←</span> <span class="key">→</span> Move Left/Right</li>
+              <li><span class="key">Space</span> Jump</li>
+              <li><span class="key">Shift</span> Dash (Invincible)</li>
+            </ul>
+          </div>
+          <div class="collectibles-legend">
+            <h3>ITEMS TO COLLECT</h3>
+            <div class="items-row">
+              <div class="legend-item">🥥 <span>Coconut (+10)</span></div>
+              <div class="legend-item">🍛 <span>Nasi Lemak (+20)</span></div>
+              <div class="legend-item">👑 <span>Extra Tanjak (+1 Life)</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Character Selection Screen -->
+      <div id="char-select-screen" class="overlay-panel hidden">
+        <h2 class="section-title font-arcade">CHOOSE YOUR HERO</h2>
+        <div class="character-grid-container">
+          <div id="character-grid" class="character-grid">
+            <!-- Dynamically populated via JS -->
+          </div>
+        </div>
+        <button id="btn-char-back" class="btn btn-secondary btn-back font-arcade">BACK TO MENU</button>
+      </div>
+
+      <!-- Game Over Screen -->
+      <div id="game-over-screen" class="overlay-panel hidden">
+        <h1 class="game-over-title font-arcade text-danger animate-pulse">GAME OVER</h1>
+        <p class="game-over-reason">"You have been invited for a friendly conversation."</p>
+        
+        <div class="stats-summary-panel">
+          <div class="stat-row">
+            <span>Score Achieved:</span>
+            <strong id="go-score" class="font-arcade">0</strong>
+          </div>
+          <div class="stat-row">
+            <span>Nasi Lemak Saved:</span>
+            <strong id="go-nasilemak">0</strong>
+          </div>
+          <div class="stat-row">
+            <span>Coconuts Grabbed:</span>
+            <strong id="go-coconuts">0</strong>
+          </div>
+          <div class="stat-row">
+            <span>Time Survived:</span>
+            <strong id="go-time">0s</strong>
+          </div>
+        </div>
+
+        <div class="menu-actions">
+          <button id="btn-retry" class="btn btn-primary btn-lg font-arcade">RUN AGAIN</button>
+          <button id="btn-go-menu" class="btn btn-secondary font-arcade">MAIN MENU</button>
+        </div>
+      </div>
+
+      <!-- Victory Screen (Cutscene Frame Overlay) -->
+      <div id="victory-screen" class="overlay-panel hidden">
+        <h1 class="victory-title font-arcade text-success">VICTORY!</h1>
+        <p class="victory-tagline">"Misunderstanding cleared. Everyone laughs."</p>
+
+        <!-- Dynamic cutscene overlay for text dialogues -->
+        <div id="cutscene-dialogue-box" class="dialogue-box">
+          <div class="dialogue-character" id="cutscene-speaker">Pang5 Adudu:</div>
+          <p class="dialogue-text" id="cutscene-text">"Sumpah bang, saya nak beli nasi lemak je tadi!"</p>
+        </div>
+
+        <div id="credits-panel" class="credits-panel hidden">
+          <h2 class="font-arcade">CREDITS</h2>
+          <div class="credits-scroll">
+            <p><strong>Producer</strong>: Antigravity AI</p>
+            <p><strong>Developer</strong>: Google DeepMind pair-programmer</p>
+            <p><strong>Main Hero</strong>: Pang5 Adudu</p>
+            <p><strong>Special Apperance</strong>: JAIS Patrol & Mak Cik Shield</p>
+            <p><strong>Catering</strong>: Kak Som Nasi Lemak Stall</p>
+            <p><strong>Sound FX</strong>: retro Web Audio Synth</p>
+            <br>
+            <p class="font-arcade text-yellow">TERIMA KASIH KERANA BERMAIN!</p>
+          </div>
+          <button id="btn-victory-menu" class="btn btn-primary font-arcade">MAIN MENU</button>
+        </div>
+      </div>
+
+      <!-- Mobile Touch Controls (shown on touch devices) -->
+      <div id="mobile-controls" class="hidden">
+        <div class="mobile-group-left">
+          <button id="btn-touch-left" class="touch-btn">◀</button>
+          <button id="btn-touch-right" class="touch-btn">▶</button>
+        </div>
+        <div class="mobile-group-right">
+          <button id="btn-touch-dash" class="touch-btn dash-btn">DASH</button>
+          <button id="btn-touch-jump" class="touch-btn jump-btn">JUMP</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game Scripts -->
+  <script src="sprites.js"></script>
+  <script src="audio.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
