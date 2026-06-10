@@ -77,6 +77,32 @@ body {
   }
 }
 
+/* Handle actual browser fullscreen mode */
+#game-container:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #000;
+  transform: none !important; /* Reset dynamic scaling during true fullscreen */
+}
+
+#game-container:-webkit-full-screen {
+  width: 100vw;
+  height: 100vh;
+  transform: none !important;
+}
+
+#game-container:fullscreen #game-canvas {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  position: relative;
+  aspect-ratio: 16 / 9;
+}
+
 /* Canvas styling */
 #game-canvas {
   position: absolute;

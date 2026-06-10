@@ -85,6 +85,12 @@ const Game = {
     // Setup dynamic scaling for mobile
     this.handleResize();
     window.addEventListener('resize', () => this.handleResize());
+    
+    // Listen for fullscreen changes to fix layout
+    document.addEventListener('fullscreenchange', () => this.handleResize());
+    document.addEventListener('webkitfullscreenchange', () => this.handleResize());
+    document.addEventListener('mozfullscreenchange', () => this.handleResize());
+    document.addEventListener('MSFullscreenChange', () => this.handleResize());
 
     // Populate Character Grid in UI
     this.populateCharacterGrid();
@@ -308,9 +314,10 @@ const Game = {
     });
     document.getElementById('btn-select-char').addEventListener('mouseenter', playHover);
 
-    document.getElementById('btn-fullscreen').addEventListener('click', () => {
-      playSelect();
+    document.getElementById('btn-fullscreen').addEventListener('click', (e) => {
+      // Direct call to ensure browser allows fullscreen
       this.toggleFullScreen();
+      playSelect();
     });
     document.getElementById('btn-fullscreen').addEventListener('mouseenter', playHover);
 
@@ -1878,6 +1885,12 @@ const Game = {
     const container = document.getElementById('game-container');
     if (!container) return;
 
+    // Skip manual scaling if browser is in true fullscreen mode
+    if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
+      container.style.transform = 'none';
+      return;
+    }
+
     const windowWidth = window.innerWidth;
     const windowHeight = window.innerHeight;
     
@@ -1917,13 +1930,21 @@ const Game = {
   },
 
   toggleFullScreen() {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(err => {
-        console.warn(`Error attempting to enable full-screen mode: ${err.message}`);
-      });
+    const doc = window.document;
+    const container = document.getElementById('game-container');
+
+    const requestFullScreen = container.requestFullscreen || container.mozRequestFullScreen || container.webkitRequestFullScreen || container.msRequestFullscreen;
+    const cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+
+    if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
+      if (requestFullScreen) {
+        requestFullScreen.call(container).catch(err => {
+          console.warn(`Error attempting to enable full-screen mode: ${err.message}`);
+        });
+      }
     } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
+      if (cancelFullScreen) {
+        cancelFullScreen.call(doc);
       }
     }
   }
