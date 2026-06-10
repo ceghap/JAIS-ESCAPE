@@ -1885,11 +1885,8 @@ const Game = {
     const container = document.getElementById('game-container');
     if (!container) return;
 
-    // Skip manual scaling if browser is in true fullscreen mode
-    if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
-      container.style.transform = 'none';
-      return;
-    }
+    // Check if browser is in true fullscreen mode
+    const isFullScreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
 
     const windowWidth = window.innerWidth;
     const windowHeight = window.innerHeight;
@@ -1901,15 +1898,21 @@ const Game = {
     let scale;
     let rotation = 0;
 
-    // Detect if we should rotate (Portrait mode on a mobile-ish device)
+    // Detect if we should rotate
     const isPortrait = windowHeight > windowWidth;
-    const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    // Inclusive mobile check: touch support OR very small screen width
+    const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || windowWidth < 600;
+
+    if (isFullScreen) {
+      // In browser fullscreen, we reset transform and let CSS take over centering
+      container.style.transform = 'translate(-50%, -50%)';
+      return;
+    }
 
     if (isPortrait && isMobile) {
       // Rotate 90 degrees to fit landscape game into portrait screen
       rotation = 90;
-      // In rotation, the game's "width" (960) must fit into the screen's height
-      // and the game's "height" (540) must fit into the screen's width
+      // When rotated 90deg, game's 960 width fits into windowHeight, 540 height fits into windowWidth
       const scaleX = windowHeight / targetWidth;
       const scaleY = windowWidth / targetHeight;
       scale = Math.min(scaleX, scaleY);
@@ -1917,7 +1920,12 @@ const Game = {
       // Standard landscape fitting
       const scaleX = windowWidth / targetWidth;
       const scaleY = windowHeight / targetHeight;
-      scale = isMobile ? Math.min(scaleX, scaleY) : Math.min(scaleX, scaleY) * 0.98;
+      // Cap scale at 1.0 for desktop to keep it sharp, allow full scale for mobile
+      const maxScale = isMobile ? 2.0 : 1.0; 
+      scale = Math.min(scaleX, scaleY, maxScale);
+      
+      // On desktop, if it's smaller than the window, give it a tiny bit of breathing room
+      if (!isMobile && scale < 1.0) scale *= 0.98;
     }
     
     container.style.transform = `translate(-50%, -50%) rotate(${rotation}deg) scale(${scale})`;
