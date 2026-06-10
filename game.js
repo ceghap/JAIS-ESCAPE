@@ -1885,19 +1885,32 @@ const Game = {
     const targetWidth = 960;
     const targetHeight = 540;
 
-    // Calculate the scale needed to fit the screen
-    const scaleX = windowWidth / targetWidth;
-    const scaleY = windowHeight / targetHeight;
+    let scale;
+    let rotation = 0;
+
+    // Detect if we should rotate (Portrait mode on a mobile-ish device)
+    const isPortrait = windowHeight > windowWidth;
+    const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+    if (isPortrait && isMobile) {
+      // Rotate 90 degrees to fit landscape game into portrait screen
+      rotation = 90;
+      // In rotation, the game's "width" (960) must fit into the screen's height
+      // and the game's "height" (540) must fit into the screen's width
+      const scaleX = windowHeight / targetWidth;
+      const scaleY = windowWidth / targetHeight;
+      scale = Math.min(scaleX, scaleY);
+    } else {
+      // Standard landscape fitting
+      const scaleX = windowWidth / targetWidth;
+      const scaleY = windowHeight / targetHeight;
+      scale = isMobile ? Math.min(scaleX, scaleY) : Math.min(scaleX, scaleY) * 0.98;
+    }
     
-    // Use the smaller scale to ensure it fits entirely (maintain aspect ratio)
-    // On mobile (portrait-ish), we want it to be as large as possible
-    const isMobile = windowHeight > windowWidth || ('ontouchstart' in window);
-    const scale = isMobile ? Math.min(scaleX, scaleY) : Math.min(scaleX, scaleY) * 0.98;
-    
-    document.documentElement.style.setProperty('--game-scale', scale);
+    container.style.transform = `translate(-50%, -50%) rotate(${rotation}deg) scale(${scale})`;
     
     // Auto-detect touch on resize/load
-    if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+    if (isMobile) {
       this.touchControlsActive = true;
       this.updateUI();
     }
