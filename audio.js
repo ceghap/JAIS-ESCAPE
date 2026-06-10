@@ -11,7 +11,7 @@ const GameAudio = {
   musicTempo: 120, // BPM
   isPlayingMusic: false,
   isMuted: false,
-  masterVolume: 0.15,
+  masterVolume: 0.25,
 
   // Node references
   masterGain: null,
@@ -20,7 +20,7 @@ const GameAudio = {
   // Step sequencer variables for BGM
   currentStep: 0,
   nextNoteTime: 0,
-  scheduleAheadTime: 0.1, // seconds
+  scheduleAheadTime: 0.15, // seconds (slightly increased for better stability)
   lookahead: 25.0, // ms
   seqInterval: null,
 
@@ -74,8 +74,9 @@ const GameAudio = {
 
   resumeContext() {
     if (this.ctx && this.ctx.state === 'suspended') {
-      this.ctx.resume();
+      return this.ctx.resume();
     }
+    return Promise.resolve();
   },
 
   setMute(mute) {
@@ -269,20 +270,24 @@ const GameAudio = {
   // 6. Background Music Loop scheduler (16-step sequencer)
   startMusic() {
     this.initContext();
-    this.resumeContext();
-    if (this.isPlayingMusic || !this.ctx) return;
+    this.resumeContext().then(() => {
+      if (this.isPlayingMusic || !this.ctx) return;
 
-    this.isPlayingMusic = true;
-    this.currentStep = 0;
-    this.nextNoteTime = this.ctx.currentTime;
-    this.musicTempo = 130; // standard speed
+      this.isPlayingMusic = true;
+      this.currentStep = 0;
+      this.nextNoteTime = this.ctx.currentTime + 0.1; // Small buffer to ensure first note plays
+      this.musicTempo = 130; // standard speed
 
-    this.bgmGain.gain.setValueAtTime(0.5, this.ctx.currentTime);
+      if (this.bgmGain) {
+        this.bgmGain.gain.setValueAtTime(0.5, this.ctx.currentTime);
+      }
 
-    // Start the clock ticker
-    this.seqInterval = setInterval(() => {
-      this.scheduler();
-    }, this.lookahead);
+      // Start the clock ticker
+      if (this.seqInterval) clearInterval(this.seqInterval);
+      this.seqInterval = setInterval(() => {
+        this.scheduler();
+      }, this.lookahead);
+    });
   },
 
   stopMusic() {
@@ -300,6 +305,11 @@ const GameAudio = {
 
   scheduler() {
     if (!this.ctx || !this.isPlayingMusic) return;
+
+    // Safety: If sequencer falls behind (e.g. tab suspended), catch up
+    if (this.nextNoteTime < this.ctx.currentTime) {
+      this.nextNoteTime = this.ctx.currentTime;
+    }
 
     while (this.nextNoteTime < this.ctx.currentTime + this.scheduleAheadTime) {
       this.scheduleNextNote(this.currentStep, this.nextNoteTime);
